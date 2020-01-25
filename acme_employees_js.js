@@ -39,9 +39,12 @@ const spacer = (text)=> {
 spacer('findEmployeeByName Moe')
 // given a name and array of employees, return employee
 
+//[pk] this works, but it's more complex than it needs to be! read up on Array.prototype.find
 const findEmployeeByName = (name, arrOfEmployees) => {
   for (let i = 0; i < arrOfEmployees.length; i++) {
     let eleObj = arrOfEmployees[i];
+    //[pk] here you're just checking whether ANY key on the employee object has _name_ as its value -- but presumably we only really care about the key ".name"!
+    //[pk] could have just said "if(eleObj.name===name) return eleObj"
     for(let k in eleObj) {
       if (eleObj[k] === name) {
         return eleObj;
@@ -59,6 +62,7 @@ spacer('findManagerFor Shep')
 
 //findManager for takes in the value of the findEmployeeByName function, and the array of employees
 
+//[pk] again, works, but same issues as above!
 const findManagerFor = (employeeObj, arrOfEmployees) => {
 
   for (let i = 0; i < arrOfEmployees.length; i++) {
@@ -78,9 +82,11 @@ spacer('findCoworkersFor Larry')
 
 //given an employee and a list of employees, return the employees who report to the same manager
 
+//[pk] great use of .filter! 
 const findCoworkersFor = (employeeObj, arrOfEmployees) => {
   return arrOfEmployees.filter(function(employee) {
     return employeeObj['managerId'] === employee['managerId'];
+    //[pk] ideally you want one more condition here -- you want to ensure that employeeObj != employeee
   })
 }
 console.log(findCoworkersFor(findEmployeeByName('larry', employees), employees));/*
@@ -98,12 +104,14 @@ const findManagementChainForEmployee = (employeeObj, arrOfEmployees) => {
   let chainArr = [];
 
   if(employeeObj['name']) {
+    //[pk] tip: you could just do "while(employeeObj.managerId)"
     while (employeeObj.managerId !== undefined) {
       chainArr.push(findManagerFor(employeeObj, arrOfEmployees));
       employeeObj = chainArr[chainArr.length -1];
     }
     
   }
+  //[pk] very good! order of the array is backwards though
   return chainArr;
 }
 
@@ -128,23 +136,31 @@ const generateManagementTree = (employeeList) => {
   let bossObj = employeeList.find((employee) => {
     return employee.managerId === undefined;
   });
+  //[pk] a touch verbose: employeeList.find(emplyoyee => !employee.managerId)
 
   return setReports(bossObj, employeeList);
 }
+
 
 const setReports = (manager, employeeList) => {
   let reports = findReports(manager, employeeList);
 
   manager.reports = reports;
+  //[pk] you have this pattern: 
+  //[pk] b = a
+  //[pk] c = b
+  //[pk] why not just c = a and cut out b?
 
   for (let i = 0; i < manager.reports.length; i++) {
     let report = manager.reports[i];
 
     setReports(report, employeeList);
   }
+  //[pk] this is good but one of many places where you use a full-on for loop when you could just use an array method -- here forEach would work and be a lot less verbose!
   return manager;
 }
 
+//[pk] noice helper func
 const findReports = (managerObj, employeeList) => {
   //match each employee's manager id, with the manager id to get manager's reports
   return employeeList.filter((employee) => {
@@ -220,6 +236,7 @@ spacer('displayManagementTree')
 
 // //given a tree of employees, generate a display which displays the hierarchy
 
+//[pk] good but you forgot the dashes -- a critical part! see solution.
 const displayManagementTree = (mgmTree) => {
   let employee = mgmTree.name;
   let dashes = '';
@@ -231,6 +248,7 @@ const displayManagementTree = (mgmTree) => {
     let report = reports[i];
 
     displayManagementTree(report);
+    //[pk] what's going on with these two lines below? they don't do anything
     dashes += '-';
     employee = report.name;
   }
